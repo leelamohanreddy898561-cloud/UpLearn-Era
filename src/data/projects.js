@@ -1,0 +1,73 @@
+// Hands-on projects shown on /projects.
+// `repo` and `demo` point to "#" until you publish the real links.
+
+export const PROJECTS = [
+  {
+    id: "p1",
+    title: "AI Attendance System",
+    difficulty: "Beginner",
+    stack: ["Python", "OpenCV", "face_recognition", "Flask"],
+    summary: "Mark attendance from a classroom photo and export the register to Excel automatically.",
+    features: ["Face detection & recognition pipeline", "CSV / Excel export", "Simple web dashboard"],
+    repo: "#",
+    demo: "#",
+    grad: "g1",
+  },
+  {
+    id: "p2",
+    title: "RAG Chatbot for College Notes",
+    difficulty: "Intermediate",
+    stack: ["Python", "LangChain", "ChromaDB", "Streamlit"],
+    summary: "Ask questions over your own PDFs — notes, syllabus, lab manuals — with source citations.",
+    features: ["PDF ingestion with page numbers", "Hybrid search", "Chat UI with sources"],
+    repo: "#",
+    demo: "#",
+    grad: "g4",
+  },
+  {
+    id: "p3",
+    title: "Resume Screener with NLP",
+    difficulty: "Intermediate",
+    stack: ["Python", "spaCy", "scikit-learn", "pandas"],
+    summary: "Rank resumes against a job description and explain exactly why each score was given.",
+    features: ["Skill extraction", "Weighted scoring", "Explainable highlights"],
+    repo: "#",
+    demo: "#",
+    grad: "g2",
+  },
+  {
+    id: "p4",
+    title: "Handwritten Notes Digitizer",
+    difficulty: "Intermediate",
+    stack: ["Python", "Tesseract", "OpenCV", "NumPy"],
+    summary: "Snap a page of handwriting and get clean, searchable text back.",
+    features: ["Deskew & denoise", "OCR with confidence scores", "Export to DOCX"],
+    repo: "#",
+    demo: "#",
+    grad: "g3",
+  },
+  {
+    id: "p5",
+    title: "Stock Price Predictor (LSTM)",
+    difficulty: "Advanced",
+    stack: ["Python", "TensorFlow", "Keras", "pandas"],
+    summary: "A sequence model on market data with honest backtesting and error analysis.",
+    features: ["Sliding-window features", "Walk-forward validation", "Prediction dashboard"],
+    repo: "#",
+    demo: "#",
+    grad: "g5",
+  },
+  {
+    id: "p6",
+    title: "AI Study Planner Agent",
+    difficulty: "Advanced",
+    stack: ["Python", "OpenAI API", "Streamlit", "SQLite"],
+    summary: "An agent that turns your syllabus into a weekly plan, then quizzes you on it.",
+    features: ["Syllabus parser", "Plan generator with memory", "Auto quiz mode"],
+    repo: "#",
+    demo: "#",
+    grad: "g6",
+  },
+];
+
+export const DIFFICULTIES = ["All", "Beginner", "Intermediate", "Advanced"];

@@ -1,0 +1,232 @@
+import { useEffect, useState } from "react";
+import { Link, NavLink } from "react-router-dom";
+
+import { Icon } from "./Icon";
+import AuthModal from "./AuthModal";
+import BrandWordmark from "./BrandWordmark";
+import { NAV_GROUPS, SITE, SOCIALS } from "../data/site";
+import { readTheme, applyTheme } from "../utils/theme";
+
+const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
+
+function ThemeToggle() {
+  const [theme, setTheme] = useState(() => readTheme());
+
+  const toggle = () =>
+    setTheme((t) => {
+      const next = t === "dark" ? "light" : "dark";
+      applyTheme(next);
+      return next;
+    });
+
+  const label = `Switch to ${theme === "dark" ? "light" : "dark"} theme`;
+  return (
+    <button className="theme-toggle" onClick={toggle} aria-label={label} title={label}>
+      <Icon name="moon" size={18} className="icon-moon" />
+      <Icon name="sun" size={18} className="icon-sun" />
+    </button>
+  );
+}
+
+function Header({ open, onToggle, onAuth }) {
+  return (
+    <header className="site-header">
+      <div className="wrap nav-in">
+        <button
+          className={`burger${open ? " on" : ""}`}
+          onClick={onToggle}
+          aria-label="Toggle menu"
+          aria-expanded={open}
+        >
+          <Icon name={open ? "close" : "menu"} size={22} />
+        </button>
+
+        <Link to="/" className="brand" aria-label={`${SITE.name} — home`}>
+          <span className="brand-mark">
+            <img src="/logo.jpg" alt="" width={40} height={40} />
+          </span>
+          <span className="brand-text">
+            <BrandWordmark />
+          </span>
+        </Link>
+
+        <nav className="nav-links" aria-label="Primary">
+          {NAV_ITEMS.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) => (isActive ? "active" : "")}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="nav-actions">
+          <ThemeToggle />
+          <button
+            className="btn btn-auth-outline"
+            onClick={() => onAuth("signin")}
+          >
+            Sign in
+          </button>
+          <button className="btn btn-auth" onClick={() => onAuth("signup")}>
+            Sign up
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+// Mobile navigation drawer (mirrors the reference site's hamburger menu).
+function MobileDrawer({ open, onClose, onAuth }) {
+  return (
+    <div className={`mobile-drawer${open ? " open" : ""}`} aria-hidden={!open}>
+      <nav aria-label="Mobile">
+        {NAV_GROUPS.map((group) => (
+          <div className="md-group" key={group.label}>
+            <span className="md-label">{group.label}</span>
+            {group.items.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === "/"}
+                className={({ isActive }) => `md-item${isActive ? " active" : ""}`}
+                onClick={onClose}
+              >
+                <span className="md-icon">
+                  <Icon name={item.icon} size={19} />
+                </span>
+                {item.label}
+              </NavLink>
+            ))}
+          </div>
+        ))}
+      </nav>
+      <div className="md-auth">
+        <button
+          className="btn btn-auth-outline"
+          onClick={() => {
+            onClose();
+            onAuth("signin");
+          }}
+        >
+          Sign in
+        </button>
+        <button
+          className="btn btn-auth"
+          onClick={() => {
+            onClose();
+            onAuth("signup");
+          }}
+        >
+          Sign up
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="site-footer">
+      <div className="wrap foot-grid">
+        <div className="foot-col">
+          <Link to="/" className="foot-brand">
+            <span className="brand-mark sm">
+              <img src="/logo.jpg" alt="" width={34} height={34} />
+            </span>
+            <span className="foot-brand-word">
+              <BrandWordmark onDark />
+            </span>
+          </Link>
+          <p className="foot-p">{SITE.description}</p>
+          <div className="foot-social">
+            {SOCIALS.map((s) => (
+              <a
+                key={s.label}
+                href={s.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={s.label}
+                title={s.label}
+              >
+                <Icon name={s.icon} size={18} fill />
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="foot-col">
+          <h5>Explore</h5>
+          {NAV_ITEMS.map((i) => (
+            <Link key={i.to} to={i.to}>
+              {i.label}
+            </Link>
+          ))}
+        </div>
+
+        <div className="foot-col">
+          <h5>Say hello</h5>
+          <a className="foot-p" href={`mailto:${SITE.email}`}>
+            {SITE.email}
+          </a>
+          <a className="foot-p" href={SITE.youtube} target="_blank" rel="noreferrer">
+            YouTube @uplearnera
+          </a>
+          <p className="foot-p">{SITE.location}</p>
+        </div>
+      </div>
+
+      <div className="foot-bottom">
+        <div className="wrap">
+          <p>
+            &copy; {SITE.since}–2026 Up Learn Era · Built for B.Tech students who
+            learn by building
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+// App shell: top bar + header, mobile drawer, main content, footer.
+export default function Layout({ children }) {
+  const [open, setOpen] = useState(false);
+  const [auth, setAuth] = useState(null); // null | "signin" | "signup"
+
+  useEffect(() => {
+    document.body.classList.toggle("no-scroll", open);
+    return () => document.body.classList.remove("no-scroll");
+  }, [open]);
+
+  // close the drawer if the window grows to desktop width
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth > 1080 && open) setOpen(false);
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [open]);
+
+  return (
+    <div className="layout">
+      <Header
+        open={open}
+        onToggle={() => setOpen((o) => !o)}
+        onAuth={setAuth}
+      />
+      <div
+        className={`drawer-overlay${open ? " open" : ""}`}
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+      />
+      <MobileDrawer open={open} onClose={() => setOpen(false)} onAuth={setAuth} />
+      <main className="main">{children}</main>
+      <Footer />
+      <AuthModal open={auth !== null} mode={auth || "signin"} onClose={() => setAuth(null)} />
+    </div>
+  );
+}
