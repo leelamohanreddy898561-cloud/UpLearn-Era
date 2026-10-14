@@ -1,59 +1,37 @@
 import { useEffect, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import { Icon } from "./Icon";
 import BrandWordmark from "./BrandWordmark";
+import { auth, FIREBASE_READY } from "../utils/firebase";
+import { useToast } from "./Toast";
 
-// Sign in / Sign up modal. Sign in mirrors the reference flow:
-// Step 1 — email or mobile + Next · Step 2 — OTP · Step 3 — done.
-// No auth backend yet, so submissions are captured locally and the
-// visitor gets a clear "opening soon" message.
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-function validIdentifier(v) {
-  const value = v.trim();
-  if (EMAIL_RE.test(value)) return true;
-  const digits = value.replace(/[^\d]/g, "");
-  return /^\+?[\d\s-]+$/.test(value) && digits.length >= 10 && digits.length <= 15;
-}
-
-function OtpBoxes({ value, onChange, error }) {
+function GoogleIcon() {
   return (
-    <>
-      <label className="fld">
-        <span>Enter OTP</span>
-        <input
-          type="text"
-          inputMode="numeric"
-          maxLength={6}
-          value={value}
-          onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
-          placeholder="6-digit code"
-          aria-invalid={!!error}
-          className="otp-input"
-        />
-        {error && <em>{error}</em>}
-      </label>
-    </>
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+      <path fill="#4285F4" d="M23.5 12.2c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 01-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8z" />
+      <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3a7.2 7.2 0 01-10.7-3.8H1.3v3.1A12 12 0 0012 24z" />
+      <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 010-4.6V6.6H1.3a12 12 0 000 10.8l4-3.1z" />
+      <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.5-3.5A12 12 0 001.3 6.6l4 3.1A7.2 7.2 0 0112 4.8z" />
+    </svg>
   );
 }
 
-export default function AuthModal({ open, onClose, mode = "signin" }) {
+export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) {
+  const [toast, toastEl] = useToast();
   const [tab, setTab] = useState(mode);
-  const [step, setStep] = useState(1); // 1 = identifier, 2 = OTP, 3 = done
-  const [identifier, setIdentifier] = useState("");
-  const [idError, setIdError] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpError, setOtpError] = useState("");
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [errors, setErrors] = useState({});
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (open) {
       setTab(mode);
-      setStep(1);
-      setIdentifier("");
-      setIdError("");
-      setOtp("");
-      setOtpError("");
+      setErrors({});
+      setForm({ name: "", email: "", password: "" });
     }
   }, [open, mode]);
 
@@ -70,32 +48,77 @@ export default function AuthModal({ open, onClose, mode = "signin" }) {
 
   if (!open) return null;
 
-  const onNext = (e) => {
-    e.preventDefault();
-    if (!validIdentifier(identifier)) {
-      setIdError("Please enter a valid email-id/mobile number");
-      return;
-    }
-    setIdError("");
-    setStep(2);
+  const set = (key) => (e) => {
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined, form: undefined }));
   };
 
-  const onVerify = (e) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setOtpError("Enter the 6-digit code");
-      return;
-    }
-    setOtpError("");
-    setStep(3);
+  const firebaseError = (err) => {
+    const map = {
+      "auth/invalid-email": "Enter a valid email address.",
+      "auth/missing-password": "Enter your password.",
+      "auth/weak-password": "Use at least 6 characters.",
+      "auth/email-already-in-use": "This email already has an account — try Sign In.",
+      "auth/invalid-credential": "Wrong email or password.",
+      "auth/user-not-found": "No account with this email — try Sign Up.",
+      "auth/wrong-password": "Wrong email or password.",
+      "auth/popup-closed-by-user": "Google popup was closed.",
+      "auth/popup-blocked": "Allow popups for this site, then try again.",
+      "auth/unauthorized-domain": "This domain isn't authorized in Firebase yet.",
+    };
+    return map[err.code] || err.message || "Something went wrong. Try again.";
   };
 
-  const masked = identifier.includes("@")
-    ? identifier.replace(/(.{2}).*(@.*)/, "$1••••$2")
-    : identifier.replace(/\d(?=\d{3})/g, "•");
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    if (!auth) {
+      setErrors({ form: "Sign in is being connected — check back soon!" });
+      return;
+    }
+    const next = {};
+    if (form.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email))
+      next.email = "Enter a valid email address.";
+    if (form.password.length < 6) next.password = "Use at least 6 characters.";
+    setErrors(next);
+    if (Object.keys(next).length) return;
+
+    setBusy(true);
+    try {
+      if (tab === "signup") {
+        await createUserWithEmailAndPassword(auth, form.email, form.password);
+        toast("Account created — welcome!");
+      } else {
+        await signInWithEmailAndPassword(auth, form.email, form.password);
+        toast("Signed in — welcome back!");
+      }
+      onClose();
+    } catch (err) {
+      setErrors({ form: firebaseError(err) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const google = async () => {
+    if (!FIREBASE_READY) {
+      setErrors({ form: "Google sign in is being connected — check back soon!" });
+      return;
+    }
+    setBusy(true);
+    try {
+      await onGoogle();
+      toast("Signed in with Google!");
+      onClose();
+    } catch (err) {
+      setErrors({ form: firebaseError(err) });
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <div className="auth-modal" onClick={onClose} role="dialog" aria-modal="true" aria-label="Sign in or sign up">
+      {toastEl}
       <div className="auth-card" onClick={(e) => e.stopPropagation()}>
         <button className="auth-close" onClick={onClose} aria-label="Close">
           <Icon name="close" size={18} />
@@ -110,114 +133,82 @@ export default function AuthModal({ open, onClose, mode = "signin" }) {
           </span>
         </div>
 
-        {step === 3 ? (
-          <div className="auth-done">
-            <span className="auth-done-icon">
-              <Icon name="check" size={26} />
-            </span>
-            <h3>You&rsquo;re on the list!</h3>
-            <p>
-              Accounts are opening soon. We&rsquo;ve saved <b>{masked}</b> —
-              you&rsquo;ll get early access the moment sign-in goes live.
-            </p>
-            <button className="btn btn-primary block" onClick={onClose}>
-              Done
-            </button>
-          </div>
-        ) : (
-          <>
-            {tab === "signin" ? (
-              step === 1 ? (
-                <form className="auth-form" onSubmit={onNext} noValidate>
-                  <div className="auth-heading">
-                    <span className="auth-eyebrow">Welcome</span>
-                    <h3 className="auth-title">Sign In</h3>
-                  </div>
-                  <p className="auth-sub">
-                    Enter your email or phone number to get started.
-                  </p>
-                  <label className="fld">
-                    <span>Phone number/Email</span>
-                    <input
-                      type="text"
-                      value={identifier}
-                      onChange={(e) => {
-                        setIdentifier(e.target.value);
-                        setIdError("");
-                      }}
-                      placeholder="Enter your email or phone number"
-                      aria-invalid={!!idError}
-                    />
-                    {idError && <em>{idError}</em>}
-                  </label>
-                  <p className="auth-helper">
-                    Please add country code if you are a user outside of India
-                  </p>
-                  <button className="btn btn-primary block" type="submit">
-                    Next
-                  </button>
-                </form>
-              ) : (
-                <form className="auth-form" onSubmit={onVerify} noValidate>
-                  <h3 className="auth-title">Verify it&rsquo;s you</h3>
-                  <p className="auth-sub">
-                    Enter the OTP sent to <b>{masked}</b>
-                  </p>
-                  <OtpBoxes value={otp} onChange={setOtp} error={otpError} />
-                  <button className="btn btn-primary block" type="submit">
-                    Verify
-                  </button>
-                  <div className="auth-row">
-                    <button
-                      type="button"
-                      className="auth-link"
-                      onClick={() => setStep(1)}
-                    >
-                      <Icon name="chevron" size={14} /> Change {identifier.includes("@") ? "email" : "number"}
-                    </button>
-                    <button
-                      type="button"
-                      className="auth-link"
-                      onClick={() => setOtpError("")}
-                    >
-                      Resend OTP
-                    </button>
-                  </div>
-                </form>
-              )
-            ) : (
-              <form className="auth-form" onSubmit={onNext} noValidate>
-                <div className="auth-heading">
-                  <span className="auth-eyebrow">Welcome</span>
-                  <h3 className="auth-title">Sign Up</h3>
-                </div>
-                <p className="auth-sub">
-                  Enter your email or phone number to get started.
-                </p>
-                <label className="fld">
-                  <span>Phone number/Email</span>
-                  <input
-                    type="text"
-                    value={identifier}
-                    onChange={(e) => {
-                      setIdentifier(e.target.value);
-                      setIdError("");
-                    }}
-                    placeholder="Enter your email or phone number"
-                    aria-invalid={!!idError}
-                  />
-                  {idError && <em>{idError}</em>}
-                </label>
-                <p className="auth-helper">
-                  Please add country code if you are a user outside of India
-                </p>
-                <button className="btn btn-primary block" type="submit">
-                  Next
-                </button>
-              </form>
-            )}
-          </>
-        )}
+        <div className="auth-tabs" role="tablist">
+          <button
+            className={`auth-tab${tab === "signin" ? " on" : ""}`}
+            onClick={() => setTab("signin")}
+            role="tab"
+            aria-selected={tab === "signin"}
+          >
+            Sign in
+          </button>
+          <button
+            className={`auth-tab${tab === "signup" ? " on" : ""}`}
+            onClick={() => setTab("signup")}
+            role="tab"
+            aria-selected={tab === "signup"}
+          >
+            Sign up
+          </button>
+        </div>
+
+        <button className="btn btn-google" onClick={google} disabled={busy}>
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
+        <div className="auth-divider">
+          <span>or use email</span>
+        </div>
+
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
+          {tab === "signup" && (
+            <label className="fld">
+              <span>Full name</span>
+              <input
+                type="text"
+                value={form.name}
+                onChange={set("name")}
+                placeholder="Priya Sharma"
+              />
+            </label>
+          )}
+          <label className="fld">
+            <span>Email</span>
+            <input
+              type="email"
+              value={form.email}
+              onChange={set("email")}
+              placeholder="you@college.edu"
+              aria-invalid={!!errors.email}
+            />
+            {errors.email && <em>{errors.email}</em>}
+          </label>
+          <label className="fld">
+            <span>Password</span>
+            <input
+              type="password"
+              value={form.password}
+              onChange={set("password")}
+              placeholder="At least 6 characters"
+              aria-invalid={!!errors.password}
+            />
+            {errors.password && <em>{errors.password}</em>}
+          </label>
+          {errors.form && <p className="auth-form-error">{errors.form}</p>}
+          <button className="btn btn-primary block" type="submit" disabled={busy}>
+            {busy ? "Please wait…" : tab === "signup" ? "Create account" : "Sign in"}
+          </button>
+        </form>
+
+        <p className="auth-note">
+          {tab === "signup"
+            ? "Already have an account? "
+            : "New to UpLearn Era? "}
+          <button className="auth-link" onClick={() => setTab(tab === "signup" ? "signin" : "signup")}>
+            {tab === "signup" ? "Sign in" : "Sign up"}
+          </button>
+        </p>
       </div>
     </div>
   );

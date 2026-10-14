@@ -6,6 +6,7 @@ import AuthModal from "./AuthModal";
 import BrandWordmark from "./BrandWordmark";
 import { NAV_GROUPS, SITE, SOCIALS } from "../data/site";
 import { readTheme, applyTheme } from "../utils/theme";
+import { useAuth } from "../hooks/useAuth";
 
 const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 
@@ -28,7 +29,46 @@ function ThemeToggle() {
   );
 }
 
-function Header({ open, onToggle, onAuth }) {
+function UserMenu({ user, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const initial = (user.displayName || user.email || "U")[0].toUpperCase();
+
+  return (
+    <div className={`user-menu${open ? " open" : ""}`}>
+      <button
+        className="user-avatar"
+        onClick={() => setOpen((o) => !o)}
+        aria-label="Account menu"
+        aria-expanded={open}
+      >
+        {user.photoURL ? (
+          <img src={user.photoURL} alt="" width={34} height={34} referrerPolicy="no-referrer" />
+        ) : (
+          <span>{initial}</span>
+        )}
+      </button>
+      {open && (
+        <div className="user-dropdown">
+          <div className="ud-head">
+            <b>{user.displayName || "Learner"}</b>
+            <small>{user.email}</small>
+          </div>
+          <Link to="/courses" onClick={() => setOpen(false)}>
+            <Icon name="book" size={15} /> My courses
+          </Link>
+          <a href={`mailto:${SITE.email}`} onClick={() => setOpen(false)}>
+            <Icon name="mail" size={15} /> Help
+          </a>
+          <button onClick={onLogout} className="ud-signout">
+            <Icon name="external" size={15} /> Sign out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Header({ open, onToggle, onAuth, user, onLogout }) {
   return (
     <header className="site-header">
       <div className="wrap nav-in">
@@ -65,15 +105,21 @@ function Header({ open, onToggle, onAuth }) {
 
         <div className="nav-actions">
           <ThemeToggle />
-          <button
-            className="btn btn-auth-outline"
-            onClick={() => onAuth("signin")}
-          >
-            Sign in
-          </button>
-          <button className="btn btn-auth" onClick={() => onAuth("signup")}>
-            Sign up
-          </button>
+          {user ? (
+            <UserMenu user={user} onLogout={onLogout} />
+          ) : (
+            <>
+              <button
+                className="btn btn-auth-outline"
+                onClick={() => onAuth("signin")}
+              >
+                Sign in
+              </button>
+              <button className="btn btn-auth" onClick={() => onAuth("signup")}>
+                Sign up
+              </button>
+            </>
+          )}
         </div>
       </div>
     </header>
@@ -81,7 +127,7 @@ function Header({ open, onToggle, onAuth }) {
 }
 
 // Mobile navigation drawer (mirrors the reference site's hamburger menu).
-function MobileDrawer({ open, onClose, onAuth }) {
+function MobileDrawer({ open, onClose, onAuth, user, onLogout }) {
   return (
     <div className={`mobile-drawer${open ? " open" : ""}`} aria-hidden={!open}>
       <nav aria-label="Mobile">
@@ -106,24 +152,35 @@ function MobileDrawer({ open, onClose, onAuth }) {
         ))}
       </nav>
       <div className="md-auth">
-        <button
-          className="btn btn-auth-outline"
-          onClick={() => {
-            onClose();
-            onAuth("signin");
-          }}
-        >
-          Sign in
-        </button>
-        <button
-          className="btn btn-auth"
-          onClick={() => {
-            onClose();
-            onAuth("signup");
-          }}
-        >
-          Sign up
-        </button>
+        {user ? (
+          <>
+            <span className="md-user">{user.email}</span>
+            <button className="btn btn-auth-outline" onClick={onLogout}>
+              Sign out
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className="btn btn-auth-outline"
+              onClick={() => {
+                onClose();
+                onAuth("signin");
+              }}
+            >
+              Sign in
+            </button>
+            <button
+              className="btn btn-auth"
+              onClick={() => {
+                onClose();
+                onAuth("signup");
+              }}
+            >
+              Sign up
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
@@ -195,7 +252,8 @@ function Footer() {
 // App shell: top bar + header, mobile drawer, main content, footer.
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
-  const [auth, setAuth] = useState(null); // null | "signin" | "signup"
+  const [authMode, setAuthMode] = useState(null); // null | "signin" | "signup"
+  const { user, googleSignIn, logout } = useAuth();
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", open);
@@ -216,17 +274,30 @@ export default function Layout({ children }) {
       <Header
         open={open}
         onToggle={() => setOpen((o) => !o)}
-        onAuth={setAuth}
+        onAuth={setAuthMode}
+        user={user}
+        onLogout={logout}
       />
       <div
         className={`drawer-overlay${open ? " open" : ""}`}
         onClick={() => setOpen(false)}
         aria-hidden="true"
       />
-      <MobileDrawer open={open} onClose={() => setOpen(false)} onAuth={setAuth} />
+      <MobileDrawer
+        open={open}
+        onClose={() => setOpen(false)}
+        onAuth={setAuthMode}
+        user={user}
+        onLogout={logout}
+      />
       <main className="main">{children}</main>
       <Footer />
-      <AuthModal open={auth !== null} mode={auth || "signin"} onClose={() => setAuth(null)} />
+      <AuthModal
+        open={authMode !== null}
+        mode={authMode || "signin"}
+        onGoogle={googleSignIn}
+        onClose={() => setAuthMode(null)}
+      />
     </div>
   );
 }
