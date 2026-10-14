@@ -799,6 +799,17 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 .auth-divider::before, .auth-divider::after {
   content: ""; flex: 1; height: 1px; background: var(--line);
 }
+.auth-suggest {
+  display: block; width: 100%; text-align: left;
+  font-size: 13.5px; color: var(--blue); margin: -8px 0 14px;
+}
+.auth-suggest b { text-decoration: underline; }
+.auth-suggest:hover { color: var(--blue-strong); }
+.auth-forgot {
+  display: block; margin: -6px 0 14px; font-size: 13.5px;
+  font-weight: 600; color: var(--blue);
+}
+.auth-forgot:hover { text-decoration: underline; }
 .auth-form-error {
   background: rgba(220, 38, 38, .08); border: 1px solid rgba(220, 38, 38, .25);
   color: var(--err); font-size: 13px; border-radius: 8px;

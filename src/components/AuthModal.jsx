@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
 } from "firebase/auth";
 
@@ -18,6 +19,30 @@ function GoogleIcon() {
       <path fill="#EA4335" d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.5-3.5A12 12 0 001.3 6.6l4 3.1A7.2 7.2 0 0112 4.8z" />
     </svg>
   );
+}
+
+// common email typos: suggest the right domain before the user is locked out
+const COMMON_DOMAINS = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com", "rediffmail.com", "proton.me"];
+
+function domainDistance(a, b) {
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 0; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++)
+    for (let j = 1; j <= b.length; j++)
+      dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + (a[i - 1] !== b[j - 1] ? 1 : 0));
+  return dp[a.length][b.length];
+}
+
+function suggestEmail(email) {
+  const at = email.lastIndexOf("@");
+  if (at < 0) return null;
+  const local = email.slice(0, at);
+  const domain = email.slice(at + 1).toLowerCase();
+  if (!local || !domain || COMMON_DOMAINS.includes(domain)) return null;
+  for (const d of COMMON_DOMAINS) {
+    if (domainDistance(domain, d) <= 2) return `${local}@${d}`;
+  }
+  return null;
 }
 
 export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) {
@@ -91,6 +116,27 @@ export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) 
         await signInWithEmailAndPassword(auth, form.email, form.password);
         toast("Signed in — welcome back!");
       }
+      onClose();
+    } catch (err) {
+      setErrors({ form: firebaseError(err) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const resetPassword = async () => {
+    if (!auth) {
+      setErrors({ form: "Password reset is being connected — check back soon!" });
+      return;
+    }
+    if (!form.email) {
+      setErrors({ email: "Enter your email first, then tap Forgot password." });
+      return;
+    }
+    setBusy(true);
+    try {
+      await sendPasswordResetEmail(auth, form.email);
+      toast("Reset link sent — check your inbox");
       onClose();
     } catch (err) {
       setErrors({ form: firebaseError(err) });
@@ -184,6 +230,18 @@ export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) 
             />
             {errors.email && <em>{errors.email}</em>}
           </label>
+          {suggestEmail(form.email) && (
+            <button
+              type="button"
+              className="auth-suggest"
+              onClick={() => {
+                setForm((f) => ({ ...f, email: suggestEmail(f.email) }));
+                setErrors((p) => ({ ...p, email: undefined }));
+              }}
+            >
+              Did you mean <b>{suggestEmail(form.email)}</b>?
+            </button>
+          )}
           <label className="fld">
             <span>Password</span>
             <input
@@ -195,6 +253,11 @@ export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) 
             />
             {errors.password && <em>{errors.password}</em>}
           </label>
+          {tab === "signin" && (
+            <button type="button" className="auth-forgot" onClick={resetPassword}>
+              Forgot password?
+            </button>
+          )}
           {errors.form && <p className="auth-form-error">{errors.form}</p>}
           <button className="btn btn-primary block" type="submit" disabled={busy}>
             {busy ? "Please wait…" : tab === "signup" ? "Create account" : "Sign in"}
