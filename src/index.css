@@ -1189,7 +1189,7 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
   .quick-links a { padding: 9px 10px; font-size: 14px; }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1360px) {
   .nav-links { display: none; }
   .burger { display: grid; }
 }
