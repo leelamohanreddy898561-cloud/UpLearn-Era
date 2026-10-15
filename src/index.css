@@ -695,15 +695,21 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 }
 .car-dot.on { width: 22px; background: var(--brand); }
 
-/* person cutout in the foreground of the brand slide */
-.banner-person {
-  position: absolute; right: 3%; bottom: 0; z-index: 1; height: 76%;
-  width: auto; object-fit: contain; pointer-events: none;
-  filter: drop-shadow(0 10px 26px rgba(2, 6, 23, .45));
+/* owner photo in the foreground of the brand slide (right side) */
+.banner-photo {
+  position: absolute; right: 0; top: 0; bottom: 0; z-index: 1;
+  width: 42%; height: 100%; object-fit: cover; object-position: 50% 22%;
+  border-top-left-radius: 24px; border-bottom-left-radius: 24px;
+  box-shadow: -18px 0 48px rgba(2, 6, 23, .45);
+  pointer-events: none;
 }
-/* the brand slide is a clean solid navy stage for the photo */
+/* left edge softens into the navy panel */
+.banner-photo::after { content: ""; }
+/* the brand slide is a clean navy stage with the photo on the right */
 .banner-slide.brand { background: #0d1e39; }
 .banner-slide.brand::after { display: none; }
+/* wordmark must read on the dark navy panel */
+.banner-slide.brand .wm-hero .bw-uplearn { color: #e8eefc; }
 .banner-slide.brand .banner-content { max-width: 480px; }
 
 /* --------------------------------------------------------------- BROWSE */
@@ -1212,7 +1218,7 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
   .banner-slide.brand .banner-actions .btn {
     padding: 8px 14px; font-size: 13px; border-radius: 9px;
   }
-  .banner-person { height: 86%; width: auto; right: 1%; }
+  .banner-photo { width: 42%; border-top-left-radius: 16px; border-bottom-left-radius: 16px; object-position: 50% 18%; }
   .browse-grid { grid-template-columns: repeat(2, 1fr); }
   .video-embed-grid { grid-template-columns: 1fr; }
   .stats-in { grid-template-columns: repeat(2, 1fr); }

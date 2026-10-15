@@ -11,3 +11,7 @@ Gemini_Generated_Image_*.png
 
 # firebase local deploy cache
 .firebase
+
+# owner-supplied source images (not part of the app)
+Image01.png
+Gemini_Generated_Image_*.png

@@ -97,7 +97,7 @@ export default function BannerCarousel() {
           >
             {s.brand ? (
               <>
-                <img className="banner-person" src="/hero-person.png" alt="" />
+                <img className="banner-photo" src="/hero-photo.jpg" alt="" />
                 <div className="banner-content">
                   <span className="eyebrow dark">Welcome to</span>
                   <h1 className="banner-brand-title">
