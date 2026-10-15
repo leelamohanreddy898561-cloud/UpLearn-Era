@@ -29,6 +29,55 @@ function ThemeToggle() {
   );
 }
 
+function VerifyBanner({ user, onResend }) {
+  const [dismissed, setDismissed] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  if (!user || user.emailVerified || dismissed) return null;
+
+  return (
+    <div className="verify-banner">
+      <div className="wrap verify-in">
+        <span className="vb-icon">
+          <Icon name="mail" size={18} />
+        </span>
+        <p>
+          <b>Verify your email</b> — we sent a confirmation link to{" "}
+          <b>{user.email}</b>. Check your inbox (and spam folder).
+        </p>
+        <div className="vb-actions">
+          <button
+            className="btn btn-sm btn-primary"
+            onClick={async () => {
+              try {
+                await onResend();
+                setSent(true);
+              } catch {
+                setSent(true);
+              }
+            }}
+          >
+            {sent ? "Link sent!" : "Resend link"}
+          </button>
+          <button
+            className="btn btn-sm btn-ghost"
+            onClick={() => window.location.reload()}
+          >
+            I&rsquo;ve verified
+          </button>
+          <button
+            className="vb-close"
+            onClick={() => setDismissed(true)}
+            aria-label="Dismiss"
+          >
+            <Icon name="close" size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UserMenu({ user, onLogout }) {
   const [open, setOpen] = useState(false);
   const initial = (user.displayName || user.email || "U")[0].toUpperCase();
@@ -253,7 +302,7 @@ function Footer() {
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
   const [authMode, setAuthMode] = useState(null); // null | "signin" | "signup"
-  const { user, googleSignIn, logout } = useAuth();
+  const { user, googleSignIn, logout, resendVerification } = useAuth();
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", open);
@@ -278,6 +327,7 @@ export default function Layout({ children }) {
         user={user}
         onLogout={logout}
       />
+      <VerifyBanner user={user} onResend={resendVerification} />
       <div
         className={`drawer-overlay${open ? " open" : ""}`}
         onClick={() => setOpen(false)}

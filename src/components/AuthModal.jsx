@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
 } from "firebase/auth";
@@ -110,8 +111,9 @@ export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) 
     setBusy(true);
     try {
       if (tab === "signup") {
-        await createUserWithEmailAndPassword(auth, form.email, form.password);
-        toast("Account created — welcome!");
+        const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+        await sendEmailVerification(cred.user);
+        toast("Account created — verify via the email we sent!");
       } else {
         await signInWithEmailAndPassword(auth, form.email, form.password);
         toast("Signed in — welcome back!");

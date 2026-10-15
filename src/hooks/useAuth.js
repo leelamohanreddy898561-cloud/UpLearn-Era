@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
+  sendEmailVerification,
   signInWithPopup,
   signOut,
 } from "firebase/auth";
@@ -52,5 +53,10 @@ export function useAuth() {
 
   const logout = () => (auth ? signOut(auth) : Promise.resolve());
 
-  return { user, loading, googleSignIn, logout };
+  const resendVerification = async () => {
+    if (!auth?.currentUser) return;
+    await sendEmailVerification(auth.currentUser);
+  };
+
+  return { user, loading, googleSignIn, logout, resendVerification };
 }
