@@ -144,7 +144,7 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
   transition: background-color .2s ease, box-shadow .2s ease;
 }
 
-.nav-in { display: flex; align-items: center; gap: 14px; height: 72px; }
+.nav-in { display: flex; align-items: center; gap: 12px; height: 72px; width: 100%; max-width: 1720px; margin: 0 auto; padding: 0 24px; }
 
 .burger {
   display: none; place-items: center; flex-shrink: 0;
@@ -154,7 +154,7 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 }
 .burger:hover { border-color: var(--brand); color: var(--brand); }
 
-.brand { display: flex; align-items: center; gap: 11px; margin-right: auto; }
+.brand { display: flex; align-items: center; gap: 11px; }
 .brand-mark {
   width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
   background: #fff; border: 1px solid var(--line);
@@ -177,15 +177,17 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 .auth-brand-word { font-size: 19px; }
 .wm-hero { font-size: clamp(34px, 4.5vw, 46px); letter-spacing: 1.5px; }
 
-/* horizontal primary navigation (desktop) — mirrors the reference layout */
-.nav-links { display: flex; align-items: center; gap: 2px; margin-left: 20px; margin-right: auto; }
-.nav-links a {
-  padding: 9px 12px; border-radius: 9px; font-weight: 500; font-size: 14px;
-  color: var(--ink-2); white-space: nowrap;
+/* compact icon + text navigation (desktop) */
+.nav-icons { display: none; align-items: center; gap: 4px; margin-left: 24px; }
+.nav-icons a {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 12px; border-radius: 9px;
+  font-weight: 500; font-size: 13.5px; color: var(--ink-2); white-space: nowrap;
   transition: background .15s, color .15s;
 }
-.nav-links a:hover { background: var(--bg-2); color: var(--ink); }
-.nav-links a.active { color: var(--brand); background: var(--nav-active-bg); }
+.nav-icons a:hover { background: var(--bg-2); color: var(--ink); }
+.nav-icons a.active { color: var(--brand); background: var(--nav-active-bg); }
+@media (min-width: 1201px) { .nav-icons { display: flex; } }
 
 .nav-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
 
@@ -1189,8 +1191,7 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
   .quick-links a { padding: 9px 10px; font-size: 14px; }
 }
 
-@media (max-width: 1360px) {
-  .nav-links { display: none; }
+@media (max-width: 1200px) {
   .burger { display: grid; }
 }
 

@@ -10,8 +10,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useInstallPrompt, isIOS } from "../hooks/useInstallPrompt";
 
 const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
-// header keeps every link except Contact (it lives in the drawer + footer)
-const HEADER_LINKS = NAV_ITEMS.filter((i) => i.to !== "/contact");
 
 function ThemeToggle() {
   const [theme, setTheme] = useState(() => readTheme());
@@ -231,7 +229,7 @@ function UserMenu({ user, onLogout }) {
 function Header({ open, onToggle, onAuth, user, onLogout }) {
   return (
     <header className="site-header">
-      <div className="wrap nav-in">
+      <div className="nav-in">
         <button
           className={`burger${open ? " on" : ""}`}
           onClick={onToggle}
@@ -250,15 +248,22 @@ function Header({ open, onToggle, onAuth, user, onLogout }) {
           </span>
         </Link>
 
-        <nav className="nav-links" aria-label="Primary">
-          {HEADER_LINKS.map((item) => (
+        <nav className="nav-icons" aria-label="Primary">
+          {[
+            { label: "Home", to: "/", icon: "home" },
+            { label: "Courses", to: "/courses", icon: "book" },
+            { label: "Videos", to: "/videos", icon: "play" },
+            { label: "Images", to: "/images", icon: "image" },
+            { label: "Contact", to: "/contact", icon: "mail" },
+          ].map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               end={item.to === "/"}
               className={({ isActive }) => (isActive ? "active" : "")}
             >
-              {item.label}
+              <Icon name={item.icon} size={17} />
+              <span>{item.label}</span>
             </NavLink>
           ))}
         </nav>
@@ -424,7 +429,7 @@ export default function Layout({ children }) {
   // close the drawer if the window grows to desktop width
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth > 1360 && open) setOpen(false);
+      if (window.innerWidth > 1200 && open) setOpen(false);
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
