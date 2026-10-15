@@ -6,8 +6,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { readTheme, applyTheme } from "./utils/theme";
 
-// Apply the saved (or OS-preferred) theme before the first paint so there is
-// no light/dark flash on load.
+// Apply the saved (or OS-preferred) theme before the first paint.
 applyTheme(readTheme());
 
 createRoot(document.getElementById("root")).render(
@@ -17,3 +16,12 @@ createRoot(document.getElementById("root")).render(
     </BrowserRouter>
   </StrictMode>
 );
+
+// Register the service worker so the site is installable as a PWA.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
+      // registration is best-effort — the app works fine without it
+    });
+  });
+}
