@@ -29,11 +29,29 @@ function ThemeToggle() {
   );
 }
 
-function VerifyBanner({ user, onResend }) {
+// Banner for signed-in-but-unverified users. Once the user clicks the email
+// link and taps "I've verified", refreshUser() re-checks the server status —
+// verified users never see this banner again.
+function VerifyBanner({ user, onResend, onRefresh }) {
   const [dismissed, setDismissed] = useState(false);
   const [sent, setSent] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [notYet, setNotYet] = useState(false);
 
   if (!user || user.emailVerified || dismissed) return null;
+
+  const checkVerified = async () => {
+    setChecking(true);
+    setNotYet(false);
+    try {
+      const ok = await onRefresh();
+      if (!ok) setNotYet(true); // still unverified on the server
+    } catch {
+      setNotYet(true);
+    } finally {
+      setChecking(false);
+    }
+  };
 
   return (
     <div className="verify-banner">
@@ -43,9 +61,15 @@ function VerifyBanner({ user, onResend }) {
         </span>
         <p>
           <b>Verify your email</b> — we sent a confirmation link to{" "}
-          <b>{user.email}</b>. Check your inbox (and spam folder).
+          <b>{user.email}</b>. Open the link in your inbox, then tap
+          &ldquo;I&rsquo;ve verified&rdquo; below.
         </p>
         <div className="vb-actions">
+          {notYet && (
+            <span className="vb-notyet">
+              Not yet — click the link in your inbox first
+            </span>
+          )}
           <button
             className="btn btn-sm btn-primary"
             onClick={async () => {
@@ -61,9 +85,10 @@ function VerifyBanner({ user, onResend }) {
           </button>
           <button
             className="btn btn-sm btn-ghost"
-            onClick={() => window.location.reload()}
+            onClick={checkVerified}
+            disabled={checking}
           >
-            I&rsquo;ve verified
+            {checking ? "Checking…" : "I’ve verified"}
           </button>
           <button
             className="vb-close"
@@ -302,7 +327,7 @@ function Footer() {
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
   const [authMode, setAuthMode] = useState(null); // null | "signin" | "signup"
-  const { user, googleSignIn, logout, resendVerification } = useAuth();
+  const { user, googleSignIn, logout, resendVerification, refreshUser } = useAuth();
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", open);
@@ -327,7 +352,7 @@ export default function Layout({ children }) {
         user={user}
         onLogout={logout}
       />
-      <VerifyBanner user={user} onResend={resendVerification} />
+      <VerifyBanner user={user} onResend={resendVerification} onRefresh={refreshUser} />
       <div
         className={`drawer-overlay${open ? " open" : ""}`}
         onClick={() => setOpen(false)}

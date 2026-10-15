@@ -15,6 +15,7 @@ import { auth, db, FIREBASE_READY } from "../utils/firebase";
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(FIREBASE_READY);
+  const [, forceUpdate] = useState(0);
 
   useEffect(() => {
     if (!auth) return;
@@ -58,5 +59,16 @@ export function useAuth() {
     await sendEmailVerification(auth.currentUser);
   };
 
-  return { user, loading, googleSignIn, logout, resendVerification };
+  // Re-fetch the user's verification status from the server. Must be called
+  // after the user clicks the link in their inbox — the cached user object
+  // keeps the old emailVerified value until this refresh runs.
+  const refreshUser = async () => {
+    const u = auth?.currentUser;
+    if (!u) return false;
+    await u.reload();
+    forceUpdate((n) => n + 1); // force a re-render with the refreshed status
+    return u.emailVerified === true;
+  };
+
+  return { user, loading, googleSignIn, logout, resendVerification, refreshUser };
 }
