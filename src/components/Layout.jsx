@@ -7,6 +7,7 @@ import BrandWordmark from "./BrandWordmark";
 import { NAV_GROUPS, SITE, SOCIALS } from "../data/site";
 import { readTheme, applyTheme } from "../utils/theme";
 import { useAuth } from "../hooks/useAuth";
+import { useInstallPrompt, isIOS } from "../hooks/useInstallPrompt";
 
 const NAV_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 
@@ -26,6 +27,89 @@ function ThemeToggle() {
       <Icon name="moon" size={18} className="icon-moon" />
       <Icon name="sun" size={18} className="icon-sun" />
     </button>
+  );
+}
+
+// Install-app button + how-to modal (native Chrome prompt when available,
+// manual steps for iOS / browsers that do not fire the prompt).
+function InstallAppButton() {
+  const { canInstall, installed, promptInstall } = useInstallPrompt();
+  const [modal, setModal] = useState(false);
+  const ios = isIOS();
+
+  if (installed) return null;
+
+  const openInstall = async () => {
+    if (canInstall) {
+      await promptInstall();
+      return;
+    }
+    setModal(true);
+  };
+
+  return (
+    <>
+      <button
+        className="btn btn-install"
+        onClick={openInstall}
+        title="Install UpLearn Era as an app"
+      >
+        <Icon name="download" size={16} />
+        <span>Install App</span>
+      </button>
+      {modal && (
+        <div
+          className="install-modal"
+          onClick={() => setModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Install instructions"
+        >
+          <div className="install-card" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="auth-close"
+              onClick={() => setModal(false)}
+              aria-label="Close"
+            >
+              <Icon name="close" size={18} />
+            </button>
+            <span className="brand-mark sm">
+              <img src="/logo.jpg" alt="" width={34} height={34} />
+            </span>
+            <h3>Install UpLearn Era</h3>
+            <p>Add the app to your home screen for the full app experience.</p>
+            {ios ? (
+              <ol className="install-steps">
+                <li>
+                  Tap the <b>Share</b> button in Safari&rsquo;s toolbar
+                </li>
+                <li>
+                  Scroll down and tap <b>Add to Home Screen</b>
+                </li>
+                <li>
+                  Tap <b>Add</b> — done!
+                </li>
+              </ol>
+            ) : (
+              <ol className="install-steps">
+                <li>
+                  Open the browser menu (the <b>&#8942;</b> or <b>&#8943;</b> button)
+                </li>
+                <li>
+                  Tap <b>Add to Home screen</b> or <b>Install app</b>
+                </li>
+                <li>
+                  Tap <b>Install</b> — done!
+                </li>
+              </ol>
+            )}
+            <button className="btn btn-primary block" onClick={() => setModal(false)}>
+              Got it
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -179,6 +263,7 @@ function Header({ open, onToggle, onAuth, user, onLogout }) {
 
         <div className="nav-actions">
           <ThemeToggle />
+          <InstallAppButton />
           {user ? (
             <UserMenu user={user} onLogout={onLogout} />
           ) : (

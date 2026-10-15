@@ -1289,3 +1289,47 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
 }
 
 .vb-notyet { font-size: 12.5px; font-weight: 600; color: var(--err); }
+
+/* install app button + instructions modal */
+.btn-install {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--surface); color: var(--blue); font-weight: 600; font-size: 13.5px;
+  padding: 8px 15px; border-radius: 9px; white-space: nowrap;
+  border: 1.5px solid var(--blue-soft-border);
+  transition: border-color .15s, color .15s, transform .15s;
+}
+.btn-install:hover { border-color: var(--blue); transform: translateY(-1px); }
+.install-modal {
+  position: fixed; inset: 0; z-index: 120;
+  background: rgba(2, 6, 23, .6); backdrop-filter: blur(3px);
+  display: grid; place-items: center; padding: 20px;
+  animation: fade-in .16s ease;
+}
+.install-card {
+  position: relative; width: min(360px, 100%); text-align: center;
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; padding: 30px 26px;
+  box-shadow: var(--shadow-lg); animation: pop-in .18s ease;
+}
+.install-card .brand-mark { margin: 0 auto 14px; }
+.install-card h3 { font-size: 20px; margin-bottom: 8px; }
+.install-card > p { font-size: 14px; color: var(--ink-2); margin-bottom: 18px; }
+.install-steps {
+  text-align: left; list-style: none; counter-reset: step;
+  display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px;
+}
+.install-steps li {
+  counter-increment: step; position: relative; padding-left: 34px;
+  font-size: 14px; color: var(--ink-2);
+}
+.install-steps li::before {
+  content: counter(step); position: absolute; left: 0; top: -1px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--brand); color: #fff; font-weight: 700; font-size: 12.5px;
+  display: grid; place-items: center;
+}
+.install-steps b { color: var(--ink); }
+@media (max-width: 640px) {
+  .btn-install span { display: none; }
+  .btn-install { padding: 8px 11px; }
+}
