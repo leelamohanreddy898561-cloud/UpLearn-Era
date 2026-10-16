@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    UpLearn Era — styles
    ========================================================================== */
 
@@ -147,7 +147,7 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 .nav-in { display: flex; align-items: center; gap: 12px; height: 72px; width: 100%; max-width: 1720px; margin: 0 auto; padding: 0 24px; }
 
 .burger {
-  display: none; place-items: center; flex-shrink: 0;
+  display: grid; place-items: center; flex-shrink: 0;
   width: 40px; height: 40px; border-radius: var(--radius-sm);
   border: 1.5px solid var(--line); background: var(--surface-2); color: var(--ink-2);
   transition: border-color .16s, color .16s;
