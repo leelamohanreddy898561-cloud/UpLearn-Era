@@ -1,17 +1,67 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 
-// YouTube video embed with a custom fullscreen button. Real channel videos
-// render an iframe; placeholders show a gradient card until their URL is added.
+// Load the official YouTube IFrame Player API once — used to know exactly
+// when a video is playing, so landscape rotation can auto-fullscreen it.
+let apiPromise = null;
+function loadYouTubeAPI() {
+  if (apiPromise) return apiPromise;
+  apiPromise = new Promise((resolve) => {
+    if (window.YT && window.YT.Player) return resolve(window.YT);
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+    window.onYouTubeIframeAPIReady = () => resolve(window.YT);
+  });
+  return apiPromise;
+}
+
 export default function VideoEmbed({ video }) {
   const isRealVideo = /youtube\.com\/watch\?v=|youtu\.be\//.test(video.yt || "");
-  const embedSrc = isRealVideo
-    ? `https://www.youtube.com/embed/${video.yt.match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1]}`
+  const videoId = isRealVideo
+    ? video.yt.match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1]
     : null;
   const frameRef = useRef(null);
+  const playerRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [landscape, setLandscape] = useState(false);
   const [isFs, setIsFs] = useState(false);
 
-  // keep the button label in sync with the browser's fullscreen state
+  // track device orientation
+  useEffect(() => {
+    const mq = window.matchMedia("(orientation: landscape)");
+    const apply = () => setLandscape(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  // create a YouTube player for accurate play/pause detection
+  useEffect(() => {
+    if (!videoId) return;
+    let cancelled = false;
+    loadYouTubeAPI().then((YT) => {
+      if (cancelled || !frameRef.current) return;
+      playerRef.current = new YT.Player(`yt-${videoId}`, {
+        videoId,
+        playerVars: { rel: 0 },
+        events: {
+          onStateChange: (e) =>
+            setPlaying(e.data === YT.PlayerState.PLAYING),
+        },
+      });
+    });
+    return () => {
+      cancelled = true;
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        /* player already gone */
+      }
+    };
+  }, [videoId]);
+
+  // keep the manual fullscreen button in sync
   useEffect(() => {
     const onChange = () => setIsFs(Boolean(document.fullscreenElement));
     document.addEventListener("fullscreenchange", onChange);
@@ -21,24 +71,21 @@ export default function VideoEmbed({ video }) {
   const toggleFullscreen = () => {
     const el = frameRef.current;
     if (!el) return;
-    if (document.fullscreenElement) {
-      document.exitFullscreen?.();
-    } else if (el.requestFullscreen) {
-      el.requestFullscreen().catch(() => {});
-    }
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
   };
+
+  // auto-fullscreen only while playing AND the phone is rotated to landscape
+  const autoFs = playing && landscape;
 
   return (
     <figure className="video-embed">
-      <div className={`ve-frame ${video.grad}`} ref={frameRef}>
-        {embedSrc ? (
-          <iframe
-            src={embedSrc}
-            title={video.title}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+      <div
+        className={`ve-frame ${video.grad}${autoFs ? " landscape-fs" : ""}`}
+        ref={frameRef}
+      >
+        {videoId ? (
+          <div id={`yt-${videoId}`} className="ve-yt" title={video.title} />
         ) : (
           <a
             className="ve-fallback"

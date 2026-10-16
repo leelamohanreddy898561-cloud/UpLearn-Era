@@ -1363,3 +1363,20 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
 .ve-frame:-webkit-full-screen iframe { width: 100%; height: 100%; }
 .ve-frame:fullscreen .ve-fs,
 .ve-frame:-webkit-full-screen .ve-fs { top: 16px; right: 16px; }
+
+/* landscape auto-fullscreen: while a video is PLAYING and the phone is
+   rotated to landscape, the frame fills the whole screen (CSS, no gesture
+   needed). The max-height guard keeps it phone-only. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .ve-frame.landscape-fs {
+    position: fixed; inset: 0; z-index: 999;
+    border-radius: 0; background: #000;
+  }
+  .ve-frame.landscape-fs .ve-yt,
+  .ve-frame.landscape-fs iframe { width: 100%; height: 100%; }
+  .ve-frame.landscape-fs .ve-fs { top: 14px; right: 14px; }
+  .ve-frame.landscape-fs .ve-fallback { height: 100%; }
+}
+/* the YouTube API renders its iframe inside this wrapper */
+.ve-yt { position: absolute; inset: 0; }
+.ve-yt iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
