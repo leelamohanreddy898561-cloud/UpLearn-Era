@@ -21,16 +21,16 @@ export const SITE = {
 // was created with — so a customer's click lands directly in the owner's
 // inbox, with no mail app involved.
 //
-// TO ACTIVATE (one-time, ~1 minute):
+// TO ACTIVATE (done — key added):
 //   1. Go to https://app.web3forms.com/onboarding/create
 //   2. Enter uplearnera@gmail.com and confirm the email they send you
 //   3. Copy the access key (a long UUID) and paste it below
-//
-// Until a key is set the form honestly reports that delivery is off rather
-// than pretending a message was sent.
 export const CONTACT_FORM = {
   endpoint: "https://api.web3forms.com/submit",
-  accessKey: "",
+  // Web3Forms access key for uplearnera@gmail.com. This is a public alias for
+  // the destination inbox (not a secret API key), so it is safe in the client
+  // bundle — see https://docs.web3forms.com/faq
+  accessKey: "ca87a3a2-818c-42ff-b8ea-b701e5ab4428",
   fromName: SITE.name,
   subject: "New message from the UpLearn Era website",
 };
