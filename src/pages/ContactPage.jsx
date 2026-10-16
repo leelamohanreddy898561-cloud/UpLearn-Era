@@ -64,13 +64,9 @@ export default function ContactPage() {
     setSending(true);
     setError("");
     try {
-      const { method } = await sendContactMessage(form);
+      await sendContactMessage(form);
       setSent(true);
-      toast(
-        method === "mailto"
-          ? "Opening your mail app — press send there"
-          : "Message sent — we usually reply within 2 days"
-      );
+      toast("Message sent — we usually reply within 2 days");
       setForm(EMPTY_FORM);
     } catch (err) {
       setError(err.message);
@@ -187,8 +183,9 @@ export default function ContactPage() {
               {sending ? "Sending…" : "Send message"}
             </button>
             <p className="fine">
-              Messages land straight in our inbox at {SITE.email}. We usually
-              reply within 2 days.
+              Sent straight to our inbox at{" "}
+              <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. No mail app is
+              opened — we usually reply within 2 days.
             </p>
 
             {error && (
@@ -197,8 +194,14 @@ export default function ContactPage() {
                   <Icon name="info" size={15} /> Could not send
                 </b>
                 <span>
-                  {error} You can also write to us directly at{" "}
-                  <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+                  {error.includes(SITE.email) ? (
+                    error
+                  ) : (
+                    <>
+                      {error} You can also write to us directly at{" "}
+                      <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+                    </>
+                  )}
                 </span>
               </div>
             )}
@@ -209,8 +212,8 @@ export default function ContactPage() {
                   <Icon name="checkCircle" size={15} /> Message sent
                 </b>
                 <span>
-                  Thanks {form.name ? "" : ""}— we got it and will reply to your
-                  email address soon.
+                  Thanks — it arrived in our inbox. We&apos;ll reply to the
+                  email address you entered, usually within 2 days.
                 </span>
               </div>
             )}

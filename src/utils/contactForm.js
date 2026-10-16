@@ -1,34 +1,25 @@
 import { CONTACT_FORM, SITE } from "../data/site";
 
-// Builds the "mailto:" link used as a fallback when the form service is
-// unreachable (or not configured yet), so a message is never lost silently.
-function buildMailto({ name, email, topic, message }) {
-  const body = [
-    `Name: ${name}`,
-    `Email: ${email}`,
-    `Topic: ${topic}`,
-    "",
-    message,
-  ].join("\n");
-  return `mailto:${SITE.email}?subject=${encodeURIComponent(
-    `Website message — ${name}`
-  )}&body=${encodeURIComponent(body)}`;
-}
-
 export function isFormConfigured() {
   return Boolean(CONTACT_FORM.accessKey.trim());
 }
 
 /**
- * Sends a contact message to the site owner's inbox.
- * Resolves to { ok: true, method: "web" | "mailto" } on success.
- * Throws with a human-readable message when the service rejects the send.
+ * Sends a contact message straight to the site owner's inbox.
+ *
+ * The visitor's browser can never send email by itself, so the message is
+ * handed to a form-to-email service (Web3Forms), whose server then delivers it
+ * to the address the access key was created with. The visitor sees a plain
+ * success message — no mail app is ever opened.
+ *
+ * Throws with a human-readable message so the UI can show a real failure
+ * instead of pretending the message was sent.
  */
 export async function sendContactMessage(form) {
-  // No access key configured yet — hand the message to the visitor's mail app.
   if (!isFormConfigured()) {
-    window.location.href = buildMailto(form);
-    return { ok: true, method: "mailto" };
+    throw new Error(
+      `Message delivery is not switched on yet. Please email us directly at ${SITE.email}.`
+    );
   }
 
   let response;
@@ -45,30 +36,26 @@ export async function sendContactMessage(form) {
         from_name: CONTACT_FORM.fromName,
         name: form.name,
         email: form.email,
-        replyto: form.email, // so "Reply" goes straight to the customer
+        replyto: form.email, // so "Reply" goes straight back to the customer
         topic: form.topic,
         message: form.message,
       }),
     });
   } catch {
-    // Network/CORS/offline — fall back rather than telling the user it worked.
-    window.location.href = buildMailto(form);
-    return { ok: true, method: "mailto" };
+    throw new Error(
+      `Could not reach the mail service. Check your connection and try again, or email us at ${SITE.email}.`
+    );
   }
 
   const result = await response.json().catch(() => ({}));
 
-  if (response.ok && result.success) {
-    return { ok: true, method: "web" };
-  }
+  if (response.ok && result.success) return { ok: true };
 
-  // Honeypot fields and similar: pretend success so bots stop trying.
-  if (result.message?.toLowerCase().includes("bot")) {
-    return { ok: true, method: "web" };
-  }
+  // Bots that trip the honeypot are told nothing — no point confirming.
+  if (result.message?.toLowerCase().includes("bot")) return { ok: true };
 
   throw new Error(
     result.message ||
-      `Sending failed (error ${response.status}). Please email us directly.`
+      `Sending failed (error ${response.status}). Please try again, or email us at ${SITE.email}.`
   );
 }

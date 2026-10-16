@@ -15,17 +15,19 @@ export const SITE = {
 // ---------------------------------------------------------------------------
 // Contact form delivery (Web3Forms — free, no backend needed)
 // ---------------------------------------------------------------------------
-// The site is hosted statically on Firebase, so there is no server to relay
-// contact messages. Web3Forms accepts a POST from the browser and emails it to
-// the address the access key was created with.
+// The site is hosted statically on Firebase, so there is no server that can
+// relay contact messages. Web3Forms fills that gap: the browser posts the
+// message to them, and their server emails it to the address the access key
+// was created with — so a customer's click lands directly in the owner's
+// inbox, with no mail app involved.
 //
-// TO ACTIVATE:
-//   1. Go to https://web3forms.com and enter uplearnera@gmail.com
-//   2. Confirm the email they send you and copy the access key
-//   3. Paste it below (it looks like a long UUID)
+// TO ACTIVATE (one-time, ~1 minute):
+//   1. Go to https://app.web3forms.com/onboarding/create
+//   2. Enter uplearnera@gmail.com and confirm the email they send you
+//   3. Copy the access key (a long UUID) and paste it below
 //
-// While the key is empty the form falls back to opening the visitor's own mail
-// app, so messages are never silently lost.
+// Until a key is set the form honestly reports that delivery is off rather
+// than pretending a message was sent.
 export const CONTACT_FORM = {
   endpoint: "https://api.web3forms.com/submit",
   accessKey: "",
