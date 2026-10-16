@@ -1,9 +1,15 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "./Icon";
 import { viewsLabel, formatDate } from "../utils/format";
+import { THUMB_QUALITIES, thumbUrl, videoIdFrom } from "../utils/youtube";
 
-// Video card with a CSS-gradient thumbnail (no binary assets needed).
+// Video card with the real YouTube thumbnail (no binary assets needed).
 export default function VideoCard({ video }) {
+  const [quality, setQuality] = useState(0);
+  const nextThumb = () =>
+    setQuality((q) => (q < THUMB_QUALITIES.length - 1 ? q + 1 : q));
+
   return (
     <article className="video-card">
       <a
@@ -13,6 +19,12 @@ export default function VideoCard({ video }) {
         rel="noreferrer"
         aria-label={`Watch ${video.title} on YouTube`}
       >
+        <img
+          src={thumbUrl(videoIdFrom(video.yt), THUMB_QUALITIES[quality])}
+          alt=""
+          loading="lazy"
+          onError={nextThumb}
+        />
         <span className="v-play">
           <Icon name="play" size={20} fill />
         </span>
@@ -40,11 +52,27 @@ export default function VideoCard({ video }) {
   );
 }
 
-// Compact variant for the homepage ticker row.
+// Compact variant for the homepage ticker row. Shows the real YouTube
+// thumbnail and links straight to the video on YouTube.
 export function VideoCardSlim({ video }) {
+  const [quality, setQuality] = useState(0);
+  const nextThumb = () =>
+    setQuality((q) => (q < THUMB_QUALITIES.length - 1 ? q + 1 : q));
+
   return (
-    <a className="video-card slim" href={video.yt} target="_blank" rel="noreferrer">
+    <a
+      className="video-card slim"
+      href={video.yt}
+      target="_blank"
+      rel="noreferrer"
+    >
       <span className={`v-thumb ${video.grad}`}>
+        <img
+          src={thumbUrl(videoIdFrom(video.yt), THUMB_QUALITIES[quality])}
+          alt=""
+          loading="lazy"
+          onError={nextThumb}
+        />
         <span className="v-play">
           <Icon name="play" size={18} fill />
         </span>
