@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 
-import VideoCard from "../components/Cards";
+import VideoEmbed from "../components/VideoEmbed";
 import { PageHead, Empty } from "../components/ui";
 import { Icon } from "../components/Icon";
 import { VIDEOS, VIDEO_TOPICS } from "../data/videos";
@@ -59,7 +59,7 @@ export default function VideosPage() {
         {list.length > 0 ? (
           <div className="video-grid">
             {list.map((v) => (
-              <VideoCard video={v} key={v.id} />
+              <VideoEmbed video={v} key={v.id} />
             ))}
           </div>
         ) : (

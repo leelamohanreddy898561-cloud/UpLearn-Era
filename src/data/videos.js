@@ -4,7 +4,8 @@
 export const SITE_YOUTUBE = "https://www.youtube.com/@uplearnera";
 
 export const VIDEOS = [
-  { id: "v1", title: "Python Setup for AI — VS Code, Anaconda & Jupyter in 20 Minutes", topic: "AI Basics", level: "Beginner", duration: "20:14", views: 48200, date: "2025-11-02", grad: "g1", yt: SITE_YOUTUBE },
+  // ---- real channel videos (embedded on site) ----
+  { id: "r1", title: "AIని మీ Skillsకి Add చేసుకోండి! Students నుంచి Professionals వరకు Career & Earning Roadmap", topic: "AI Basics", level: "Beginner", duration: "3:10", views: 0, date: "2026-09-12", grad: "g1", yt: "https://youtu.be/BJ-V-Y_rXaY", badge: "New" },  { id: "v1", title: "Python Setup for AI — VS Code, Anaconda & Jupyter in 20 Minutes", topic: "AI Basics", level: "Beginner", duration: "20:14", views: 48200, date: "2025-11-02", grad: "g1", yt: SITE_YOUTUBE },
   { id: "v2", title: "NumPy Crash Course — Arrays, Indexing & Vectorisation", topic: "AI Basics", level: "Beginner", duration: "34:02", views: 39600, date: "2025-11-16", grad: "g2", yt: SITE_YOUTUBE },
   { id: "v3", title: "Pandas in One Video — Cleaning Data Like a Pro", topic: "AI Basics", level: "Beginner", duration: "41:37", views: 44100, date: "2025-12-01", grad: "g2", yt: SITE_YOUTUBE },
   { id: "v4", title: "Linear Regression from Scratch (No scikit-learn)", topic: "Machine Learning", level: "Intermediate", duration: "28:45", views: 31500, date: "2025-12-18", grad: "g3", yt: SITE_YOUTUBE },

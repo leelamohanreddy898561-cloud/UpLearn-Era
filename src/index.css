@@ -1334,3 +1334,11 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
   .btn-install span { display: none; }
   .btn-install { padding: 8px 11px; }
 }
+
+/* "Watch on YouTube" link under an embedded video */
+.ve-yt-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--blue);
+}
+.ve-yt-link svg { color: #ff0000; }
+.ve-yt-link:hover { text-decoration: underline; }

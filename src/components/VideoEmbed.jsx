@@ -1,6 +1,7 @@
-// YouTube video embed. Falls back to a link-card until a real video URL
-// exists in the data (channel currently has no uploads).
+import { Icon } from "./Icon";
 
+// YouTube video embed. Real channel videos render an iframe; placeholders
+// show a gradient card until their URL is added.
 export default function VideoEmbed({ video }) {
   const isRealVideo = /youtube\.com\/watch\?v=|youtu\.be\//.test(video.yt || "");
   const embedSrc = isRealVideo
@@ -27,9 +28,7 @@ export default function VideoEmbed({ video }) {
             aria-label={`Watch ${video.title} on YouTube`}
           >
             <span className="ve-play">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <Icon name="play" size={22} fill />
             </span>
             <span className="ve-soon">Video coming soon — watch on YouTube</span>
           </a>
@@ -38,8 +37,13 @@ export default function VideoEmbed({ video }) {
       <figcaption>
         <b>{video.title}</b>
         <small>
-          {video.topic} · {video.level}
+          {video.topic} · {video.level} · {video.duration}
         </small>
+        {isRealVideo && (
+          <a className="ve-yt-link" href={video.yt} target="_blank" rel="noreferrer">
+            <Icon name="youtube" size={14} fill /> Watch on YouTube
+          </a>
+        )}
       </figcaption>
     </figure>
   );
