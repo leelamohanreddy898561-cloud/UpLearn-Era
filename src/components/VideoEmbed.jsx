@@ -1,38 +1,17 @@
-import { Icon } from "./Icon";
-
-// YouTube video embed. Real channel videos render an iframe; placeholders
-// show a gradient card until their URL is added.
+// YouTube video embed for the real channel videos listed in data/videos.js.
 export default function VideoEmbed({ video }) {
-  const isRealVideo = /youtube\.com\/watch\?v=|youtu\.be\//.test(video.yt || "");
-  const embedSrc = isRealVideo
-    ? `https://www.youtube.com/embed/${video.yt.match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1]}`
-    : null;
+  const videoId = video.yt?.match(/(?:v=|youtu\.be\/)([\w-]{11})/)?.[1] ?? "";
 
   return (
     <figure className="video-embed">
       <div className={`ve-frame ${video.grad}`}>
-        {embedSrc ? (
-          <iframe
-            src={embedSrc}
-            title={video.title}
-            loading="lazy"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
-        ) : (
-          <a
-            className="ve-fallback"
-            href={video.yt}
-            target="_blank"
-            rel="noreferrer"
-            aria-label={`Watch ${video.title} on YouTube`}
-          >
-            <span className="ve-play">
-              <Icon name="play" size={22} fill />
-            </span>
-            <span className="ve-soon">Video coming soon — watch on YouTube</span>
-          </a>
-        )}
+        <iframe
+          src={`https://www.youtube.com/embed/${videoId}`}
+          title={video.title}
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
       </div>
       <figcaption>
         <b>{video.title}</b>

@@ -24,7 +24,7 @@ export default function VideosPage() {
         <PageHead
           current="Videos"
           title="Video library"
-          sub="Every tutorial from the UpLearn Era channel — Python, ML, deep learning, AI tools and project walkthroughs."
+          sub="Every video from the UpLearn Era channel — AI basics, machine learning and deep learning explained in Telugu."
         />
 
         <div className="toolbar">

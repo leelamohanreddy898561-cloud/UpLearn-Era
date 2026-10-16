@@ -756,19 +756,6 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
   overflow: hidden; border: 1px solid var(--line);
 }
 .ve-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
-.ve-fallback {
-  position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 14px;
-  color: #fff; text-align: center; padding: 20px;
-}
-.ve-play {
-  width: 58px; height: 58px; border-radius: 50%;
-  background: rgba(255, 255, 255, .94); color: var(--brand);
-  display: grid; place-items: center; padding-left: 4px;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, .3);
-  transition: transform .15s ease;
-}
-.ve-fallback:hover .ve-play { transform: scale(1.08); }
-.ve-soon { font-size: 13.5px; font-weight: 600; color: rgba(255, 255, 255, .92); }
 .video-embed figcaption b { display: block; font-size: 15px; font-family: "Plus Jakarta Sans", sans-serif; line-height: 1.4; }
 .video-embed figcaption small { font-size: 12.5px; color: var(--muted); }
 .center { text-align: center; margin-top: 28px; }
