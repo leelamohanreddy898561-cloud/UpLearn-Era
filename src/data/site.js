@@ -12,6 +12,27 @@ export const SITE = {
   since: "2025",
 };
 
+// ---------------------------------------------------------------------------
+// Contact form delivery (Web3Forms — free, no backend needed)
+// ---------------------------------------------------------------------------
+// The site is hosted statically on Firebase, so there is no server to relay
+// contact messages. Web3Forms accepts a POST from the browser and emails it to
+// the address the access key was created with.
+//
+// TO ACTIVATE:
+//   1. Go to https://web3forms.com and enter uplearnera@gmail.com
+//   2. Confirm the email they send you and copy the access key
+//   3. Paste it below (it looks like a long UUID)
+//
+// While the key is empty the form falls back to opening the visitor's own mail
+// app, so messages are never silently lost.
+export const CONTACT_FORM = {
+  endpoint: "https://api.web3forms.com/submit",
+  accessKey: "",
+  fromName: SITE.name,
+  subject: "New message from the UpLearn Era website",
+};
+
 export const QUICK_LINKS = [
   ["Home", "/"],
   ["Courses", "/courses"],

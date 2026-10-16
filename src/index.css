@@ -1161,6 +1161,22 @@ a.c-card:hover { border-color: var(--brand); color: var(--ink); transform: trans
 }
 .done b { display: flex; align-items: center; gap: 8px; color: var(--ok); margin-bottom: 3px; }
 .done span { font-size: 13.5px; color: var(--ink-2); }
+.done span a { color: var(--blue); font-weight: 600; }
+
+/* failed-send variant of the same box */
+.done.err {
+  background: rgba(220, 38, 38, .08); border-color: rgba(220, 38, 38, .32);
+}
+.done.err b { color: var(--err); }
+
+/* spam trap — off-screen, never focusable by keyboard */
+.hp {
+  position: absolute !important; left: -9999px; width: 1px; height: 1px;
+  overflow: hidden; pointer-events: none;
+}
+
+/* submit button in-flight state */
+.btn[disabled] { opacity: .65; cursor: progress; }
 
 /* ===================================================================== FAQ */
 .faq-wrap { margin-top: 56px; }

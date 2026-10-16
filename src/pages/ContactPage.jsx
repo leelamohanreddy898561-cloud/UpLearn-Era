@@ -4,6 +4,7 @@ import { Icon } from "../components/Icon";
 import { PageHead, SectionHead } from "../components/ui";
 import { useToast } from "../components/Toast";
 import { SITE, SOCIALS } from "../data/site";
+import { sendContactMessage } from "../utils/contactForm";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -28,9 +29,19 @@ const FAQS = [
 
 export default function ContactPage() {
   const [toast, toastEl] = useToast();
-  const [form, setForm] = useState({ name: "", email: "", topic: "Course question", message: "" });
+  const EMPTY_FORM = {
+    name: "",
+    email: "",
+    topic: "Course question",
+    message: "",
+    botcheck: "",
+  };
+
+  const [form, setForm] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
 
   const set = (key) => (e) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -47,14 +58,26 @@ export default function ContactPage() {
     return Object.keys(next).length === 0;
   };
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    // Static demo: swap this for Formspree/EmailJS or your own API later.
-    console.log("Contact submission:", form);
-    setSent(true);
-    toast("Message sent — we usually reply within 2 days");
-    setForm({ name: "", email: "", topic: "Course question", message: "" });
+    if (sending || !validate()) return;
+    setSending(true);
+    setError("");
+    try {
+      const { method } = await sendContactMessage(form);
+      setSent(true);
+      toast(
+        method === "mailto"
+          ? "Opening your mail app — press send there"
+          : "Message sent — we usually reply within 2 days"
+      );
+      setForm(EMPTY_FORM);
+    } catch (err) {
+      setError(err.message);
+      toast("Message could not be sent. Please try again.");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -146,21 +169,48 @@ export default function ContactPage() {
               {errors.message && <em>{errors.message}</em>}
             </label>
 
-            <button className="btn btn-primary block" type="submit">
-              <Icon name="arrowRight" size={16} /> Send message
+            {/* spam trap — hidden from people, tempting for bots */}
+            <label className="hp" aria-hidden="true">
+              <span>Leave this field empty</span>
+              <input
+                type="text"
+                name="botcheck"
+                tabIndex={-1}
+                autoComplete="off"
+                value={form.botcheck}
+                onChange={set("botcheck")}
+              />
+            </label>
+
+            <button className="btn btn-primary block" type="submit" disabled={sending}>
+              <Icon name="arrowRight" size={16} />
+              {sending ? "Sending…" : "Send message"}
             </button>
             <p className="fine">
-              This demo form validates and logs locally — connect a form
-              service before going live.
+              Messages land straight in our inbox at {SITE.email}. We usually
+              reply within 2 days.
             </p>
 
-            {sent && (
-              <div className="done">
+            {error && (
+              <div className="done err">
                 <b>
-                  <Icon name="checkCircle" size={15} /> Message ready to send
+                  <Icon name="info" size={15} /> Could not send
                 </b>
                 <span>
-                  Thanks! In production this would reach {SITE.email} instantly.
+                  {error} You can also write to us directly at{" "}
+                  <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.
+                </span>
+              </div>
+            )}
+
+            {sent && !error && (
+              <div className="done">
+                <b>
+                  <Icon name="checkCircle" size={15} /> Message sent
+                </b>
+                <span>
+                  Thanks {form.name ? "" : ""}— we got it and will reply to your
+                  email address soon.
                 </span>
               </div>
             )}
