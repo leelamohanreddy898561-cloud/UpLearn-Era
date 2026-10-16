@@ -26,29 +26,32 @@ export function useAuth() {
     return unsub;
   }, []);
 
-  const saveUser = async (u) => {
-    if (!db || !u) return;
-    try {
-      await setDoc(
-        doc(db, "users", u.uid),
-        {
-          email: u.email || "",
-          name: u.displayName || "",
-          photo: u.photoURL || "",
-          provider: u.providerData?.[0]?.providerId || "",
-          lastLoginAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
-    } catch {
-      // sign-in already succeeded — never block the user on the email list
-    }
+  // Store the user for the email list. NEVER awaited by sign-in — Firestore
+  // can hang when the API is disabled, and the login must never depend on it.
+  // A hard timeout keeps it from blocking anything, even in the background.
+  const saveUser = (u) => {
+    if (!db || !u) return Promise.resolve();
+    const write = setDoc(
+      doc(db, "users", u.uid),
+      {
+        email: u.email || "",
+        name: u.displayName || "",
+        photo: u.photoURL || "",
+        provider: u.providerData?.[0]?.providerId || "",
+        lastLoginAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    const timeout = new Promise((resolve) => setTimeout(resolve, 5000));
+    return Promise.race([write, timeout]).catch(() => {});
   };
 
   const googleSignIn = async () => {
     if (!auth) throw new Error("Setup in progress");
     const result = await signInWithPopup(auth, new GoogleAuthProvider());
-    await saveUser(result.user);
+    // fire-and-forget: sign-in returns immediately, the list save runs in the
+    // background and can never freeze the modal again
+    saveUser(result.user);
     return result.user;
   };
 
