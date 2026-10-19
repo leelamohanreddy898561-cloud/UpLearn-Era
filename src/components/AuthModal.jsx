@@ -4,6 +4,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 
 import { Icon } from "./Icon";
@@ -46,7 +47,7 @@ function suggestEmail(email) {
   return null;
 }
 
-export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) {
+export default function AuthModal({ open, onClose, mode = "signin", onGoogle, onUserSaved }) {
   const [toast, toastEl] = useToast();
   const [tab, setTab] = useState(mode);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -112,6 +113,14 @@ export default function AuthModal({ open, onClose, mode = "signin", onGoogle }) 
     try {
       if (tab === "signup") {
         const cred = await createUserWithEmailAndPassword(auth, form.email, form.password);
+        // The name field used to be collected and then thrown away. Attach it
+        // to the profile so the lead record carries a real name.
+        if (form.name.trim()) {
+          await updateProfile(cred.user, { displayName: form.name.trim() });
+          // The auth listener already fired before the profile existed, so
+          // re-save the lead now that the name is on the user.
+          onUserSaved?.(cred.user);
+        }
         await sendEmailVerification(cred.user);
         toast("Account created — verify via the email we sent!");
       } else {

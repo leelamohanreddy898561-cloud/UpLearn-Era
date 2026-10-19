@@ -419,7 +419,7 @@ function Footer() {
 export default function Layout({ children }) {
   const [open, setOpen] = useState(false);
   const [authMode, setAuthMode] = useState(null); // null | "signin" | "signup"
-  const { user, googleSignIn, logout, resendVerification, refreshUser } = useAuth();
+  const { user, googleSignIn, logout, resendVerification, refreshUser, saveUser } = useAuth();
 
   useEffect(() => {
     document.body.classList.toggle("no-scroll", open);
@@ -463,6 +463,7 @@ export default function Layout({ children }) {
         open={authMode !== null}
         mode={authMode || "signin"}
         onGoogle={googleSignIn}
+        onUserSaved={saveUser}
         onClose={() => setAuthMode(null)}
       />
     </div>

@@ -22,21 +22,26 @@ export function useAuth() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       setLoading(false);
+      // Every sign-in path funnels through here — Google, email/password, a
+      // brand-new signup, or a returning user — so this one spot keeps the
+      // lead list complete. Previously only Google sign-in was saved, which
+      // silently dropped everyone who registered with email + password.
+      if (u) saveLead(u);
     });
     return unsub;
   }, []);
 
-  // Store the user for the email list. Never awaited by sign-in — the write
-  // runs in the background and has its own timeout, so login can't be blocked
-  // or frozen by the database.
+  // Exposed so callers can re-save after changing the profile (e.g. adding a
+  // display name right after signup, which happens after the auth listener
+  // has already fired).
   const saveUser = (u) => saveLead(u);
 
   const googleSignIn = async () => {
     if (!auth) throw new Error("Setup in progress");
     const result = await signInWithPopup(auth, new GoogleAuthProvider());
-    // fire-and-forget: sign-in returns immediately, the list save runs in the
+    // fire-and-forget: sign-in returns immediately, the lead save runs in the
     // background and can never freeze the modal again
-    saveUser(result.user);
+    saveLead(result.user);
     return result.user;
   };
 
@@ -58,5 +63,5 @@ export function useAuth() {
     return u.emailVerified === true;
   };
 
-  return { user, loading, googleSignIn, logout, resendVerification, refreshUser };
+  return { user, loading, googleSignIn, logout, resendVerification, refreshUser, saveUser };
 }
