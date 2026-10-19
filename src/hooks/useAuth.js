@@ -6,9 +6,9 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 
-import { auth, db, FIREBASE_READY } from "../utils/firebase";
+import { auth, FIREBASE_READY } from "../utils/firebase";
+import { saveLead } from "../utils/firestore";
 
 // Tracks the signed-in user across the app and stores each user in the
 // Firestore "users" collection (the lead/email list).
@@ -26,25 +26,10 @@ export function useAuth() {
     return unsub;
   }, []);
 
-  // Store the user for the email list. NEVER awaited by sign-in — Firestore
-  // can hang when the API is disabled, and the login must never depend on it.
-  // A hard timeout keeps it from blocking anything, even in the background.
-  const saveUser = (u) => {
-    if (!db || !u) return Promise.resolve();
-    const write = setDoc(
-      doc(db, "users", u.uid),
-      {
-        email: u.email || "",
-        name: u.displayName || "",
-        photo: u.photoURL || "",
-        provider: u.providerData?.[0]?.providerId || "",
-        lastLoginAt: serverTimestamp(),
-      },
-      { merge: true }
-    );
-    const timeout = new Promise((resolve) => setTimeout(resolve, 5000));
-    return Promise.race([write, timeout]).catch(() => {});
-  };
+  // Store the user for the email list. Never awaited by sign-in — the write
+  // runs in the background and has its own timeout, so login can't be blocked
+  // or frozen by the database.
+  const saveUser = (u) => saveLead(u);
 
   const googleSignIn = async () => {
     if (!auth) throw new Error("Setup in progress");

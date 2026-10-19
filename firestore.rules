@@ -1,0 +1,32 @@
+rules_version = '2';
+
+// Firestore security rules for UpLearn Era.
+//
+// Firestore was previously left in open "test mode" (allow read, write: if
+// true). That let anyone who read the public web config read, overwrite or
+// delete the whole users collection. These rules close it down: the browser
+// can only ever touch one document — the signed-in visitor's own record.
+//
+// The site owner still sees every record in the Firebase console, because
+// console access bypasses these rules (it is not a client request).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Lead/email list. A visitor writes only their own document, keyed by
+    // their Firebase Auth uid, and nobody can delete it from the client.
+    match /users/{userId} {
+      allow read, update: if request.auth != null
+                          && request.auth.uid == userId;
+      allow create: if request.auth != null
+                    && request.auth.uid == userId
+                    && request.resource.data.email == request.auth.token.email;
+      allow delete: if false;
+    }
+
+    // Nothing else is reachable from the browser.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
