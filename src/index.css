@@ -396,6 +396,8 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 .page-title { font-size: 36px; letter-spacing: -.8px; }
 .page-sub { color: var(--ink-2); margin: 10px 0 4px; max-width: 680px; font-size: 15.5px; }
 
+
+
 /* ================================================================== TOOLBAR */
 .toolbar { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 18px; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -407,6 +409,22 @@ select:focus-visible, textarea:focus-visible, .scroller:focus-visible {
 .chip:hover { border-color: var(--brand); color: var(--brand); }
 .chip.on { background: var(--brand); border-color: var(--brand); color: #fff; }
 .chip.on:hover { color: #fff; }
+
+/* "Upcoming Courses" — same chip shape, but a solid brand-coloured link that
+   opens the YouTube channel */
+.chip-upcoming {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--brand); border-color: var(--brand); color: #fff;
+  text-decoration: none; cursor: pointer;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--brand) 30%, transparent);
+}
+.chip-upcoming svg { color: #fff; flex-shrink: 0; }
+.chip-upcoming:hover {
+  background: color-mix(in srgb, var(--brand) 88%, #000);
+  border-color: color-mix(in srgb, var(--brand) 88%, #000);
+  color: #fff;
+  transform: translateY(-1px);
+}
 .search-box {
   display: flex; align-items: center; gap: 9px;
   border: 1px solid var(--line); border-radius: var(--radius-sm);

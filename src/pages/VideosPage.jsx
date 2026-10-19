@@ -4,6 +4,7 @@ import VideoEmbed from "../components/VideoEmbed";
 import { PageHead, Empty } from "../components/ui";
 import { Icon } from "../components/Icon";
 import { VIDEOS, VIDEO_TOPICS } from "../data/videos";
+import { SITE } from "../data/site";
 
 export default function VideosPage() {
   const [topic, setTopic] = useState("All");
@@ -38,6 +39,18 @@ export default function VideosPage() {
                 {t}
               </button>
             ))}
+            {/* "Upcoming Courses" opens the YouTube channel, styled like a chip */}
+            <a
+              className="chip chip-upcoming"
+              href={SITE.youtube}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Upcoming Courses — open our YouTube channel"
+              title="Watch upcoming courses on YouTube"
+            >
+              <Icon name="sparkles" size={13} fill />
+              Upcoming Courses
+            </a>
           </div>
           <label className="search-box">
             <Icon name="search" size={16} />
